@@ -1,5 +1,4 @@
 #include "utils.h"
-#include <stdio.h>
 
 void printer(const char (*sudoku)[SIZE])
 {
@@ -19,7 +18,7 @@ void printer(const char (*sudoku)[SIZE])
                 printf("| ");
         }
         printf("\n");
-        
+
         if((i+1)%3 == 0)
         {
             for(int i = 0; i < 25; i++)
