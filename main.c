@@ -1,22 +1,15 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include "utils.h"
-#include <string.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <sys/stat.h>
 
 const char* extractFromFile(const char* filepath);
 void charArrToByteMat(const char* buffer, char (*sudoku)[SIZE]);
 void updateEntropyMat();
 void initPossibleMat();
 void updatePossibleMat(int val, int row, int col);
+struct cell findBestCell();
 
 char g_entropy_mat[SIZE][SIZE];
 char g_possible_mat[SIZE][SIZE][SIZE];
+size_t finish_count = SIZE*SIZE;
 
 
 int main(int argc, char** argv)
@@ -39,6 +32,34 @@ int main(int argc, char** argv)
     updateEntropyMat();
     printf("Entropy matrix initialize\n");
     printer(g_entropy_mat);
+
+    printf("solving the sudoku\n");
+    while(finish_count > 0)
+    {
+        //find the cell with less entropy
+        struct cell best_cell = findBestCell();
+        printf("best cell found at row %ld and column %ld with the value: %d\n", best_cell.row,
+                                                                            best_cell.col,
+                                                                            g_entropy_mat[best_cell.row][best_cell.col]);        
+        //roll a dice to se what value to use
+        srand(time(NULL));
+        int val = rand()%9 + 1;
+        //if the value is not possible at that cell find another
+        while(g_possible_mat[best_cell.row][best_cell.col][val-1] == 0)
+        {
+            val = rand()%9 + 1;
+        }
+        sudoku[best_cell.row][best_cell.col] = val;
+        updatePossibleMat(val, best_cell.row, best_cell.col);
+        updateEntropyMat();
+        finish_count--;
+        printer(g_entropy_mat);
+        printer(sudoku);
+        printf("Value of finish_count: %ld\n", finish_count);
+    }
+
+    printf("Sudoku resolved\n");
+    printer(sudoku);
     return 0;
 }
 
@@ -89,8 +110,10 @@ void charArrToByteMat(const char* buffer, char (*sudoku)[SIZE])
         if(buffer[i] != ' ')
         {
             sudoku[row][col] = (char)buffer[i] - '0';
-            if(sudoku[row][col] != 0)
+            if(sudoku[row][col] != 0){
                 updatePossibleMat(sudoku[row][col], row, col);
+                finish_count--;
+            }
             col++;
         }
         i++;
@@ -147,4 +170,23 @@ void updatePossibleMat(int val, int row, int col)
             g_possible_mat[i][j][val-1] = 0;
         }
     }
+}
+struct cell findBestCell()
+{   
+    //bruteforce, find a better way to search for a best cell
+    struct cell best_cell = { .col = 0, .row = 0};
+    int best_val = 10;
+    for(int i = 0 ; i < SIZE; i++)
+    {
+        for(int j = 0; j < SIZE; j++)
+        {
+            if(best_val > g_entropy_mat[i][j] && g_entropy_mat[i][j] > 0)
+            {
+                best_cell.col = j;
+                best_cell.row = i;
+                best_val = g_entropy_mat[i][j];
+            }
+        }
+    }
+    return best_cell;
 }
