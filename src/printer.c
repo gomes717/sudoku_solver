@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "../include/utils.h"
 
 void printer(const u_int8_t (*sudoku)[SIZE])
 {

@@ -15,7 +15,11 @@
 #include "defs.h"
 #include "structs.h"
 
+extern u_int8_t g_entropy_mat[SIZE][SIZE];
+extern u_int16_t g_possible_mat[SIZE][SIZE][SIZE];
+
 void printer(const u_int8_t (*sudoku)[SIZE]);
-void initSudoku(u_int8_t (*sudoku)[SIZE]);
+void initSudoku(const char* filepath, u_int8_t (*sudoku)[SIZE]);
+void initEntropy();
 
 #endif
