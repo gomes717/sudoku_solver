@@ -1,17 +1,17 @@
 #include "utils.h"
 
-void printer(const char (*sudoku)[SIZE])
+void printer(const u_int8_t (*sudoku)[SIZE])
 {
-    for(int i = 0; i < 25; i++)
+    for(size_t i = 0; i < 25; i++)
     {
         printf("-");
     }
     printf("\n");
 
-    for(int i = 0; i < SIZE; i++)
+    for(size_t i = 0; i < SIZE; i++)
     {
         printf("| ");
-        for(int j = 0; j < SIZE; j++)
+        for(size_t j = 0; j < SIZE; j++)
         {
             printf("%d ", sudoku[i][j]);
             if((j+1)%3 == 0)
@@ -21,7 +21,7 @@ void printer(const char (*sudoku)[SIZE])
 
         if((i+1)%3 == 0)
         {
-            for(int i = 0; i < 25; i++)
+            for(size_t i = 0; i < 25; i++)
             {
                 printf("-");
             }

@@ -1,14 +1,14 @@
 #include "utils.h"
 
-const char* extractFromFile(const char* filepath);
-void charArrToByteMat(const char* buffer, char (*sudoku)[SIZE]);
+const u_int8_t* extractFromFile(const u_int8_t* filepath);
+void charArrToByteMat(const u_int8_t* buffer, u_int8_t (*sudoku)[SIZE]);
 void updateEntropyMat();
 void initPossibleMat();
-void updatePossibleMat(int val, int row, int col);
+void updatePossibleMat(const u_int8_t val, const u_int8_t row, const u_int8_t col);
 struct cell findBestCell();
 
-char g_entropy_mat[SIZE][SIZE];
-char g_possible_mat[SIZE][SIZE][SIZE];
+u_int8_t g_entropy_mat[SIZE][SIZE];
+u_int16_t g_possible_mat[SIZE][SIZE][SIZE];
 size_t finish_count = SIZE*SIZE;
 
 
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     //printf("FILE INFO: \n%s\n", buff);
 
     initPossibleMat();
-    char sudoku[SIZE][SIZE];
+    u_int8_t sudoku[SIZE][SIZE];
     charArrToByteMat(buff, sudoku);
     printf("Sudoku matrix:\n");
     printer(sudoku);
@@ -38,12 +38,14 @@ int main(int argc, char** argv)
     {
         //find the cell with less entropy
         struct cell best_cell = findBestCell();
+        if(best_cell.row == -1 && best_cell.col == -1)
+            break;
         printf("best cell found at row %ld and column %ld with the value: %d\n", best_cell.row,
                                                                             best_cell.col,
                                                                             g_entropy_mat[best_cell.row][best_cell.col]);        
         //roll a dice to se what value to use
         srand(time(NULL));
-        int val = rand()%9 + 1;
+        u_int32_t val = rand()%9 + 1;
         //if the value is not possible at that cell find another
         while(g_possible_mat[best_cell.row][best_cell.col][val-1] == 0)
         {
@@ -63,10 +65,10 @@ int main(int argc, char** argv)
     return 0;
 }
 
-const char* extractFromFile(const char* filepath)
+const u_int8_t* extractFromFile(const u_int8_t* filepath)
 {
     printf("Openning: %s\n", filepath);
-    int fd = open(filepath, O_RDONLY);
+    int32_t fd = open(filepath, O_RDONLY);
 
     if(fd < 0)
     {
@@ -75,7 +77,7 @@ const char* extractFromFile(const char* filepath)
     }
 
     struct stat statbuf;
-    int status = fstat(fd, &statbuf);
+    int32_t status = fstat(fd, &statbuf);
 
     if(status < 0)
     {
@@ -92,7 +94,7 @@ const char* extractFromFile(const char* filepath)
     return buff;
 }
 
-void charArrToByteMat(const char* buffer, char (*sudoku)[SIZE])
+void charArrToByteMat(const u_int8_t* buffer, u_int8_t (*sudoku)[SIZE])
 {
     size_t col = 0;
     size_t row = 0;
@@ -122,12 +124,12 @@ void charArrToByteMat(const char* buffer, char (*sudoku)[SIZE])
 
 void updateEntropyMat()
 {
-    for(int i = 0; i < SIZE; i++)
+    for(size_t i = 0; i < SIZE; i++)
     {
-        for(int j = 0; j < SIZE; j++)
+        for(size_t j = 0; j < SIZE; j++)
         {
-            int entropy = 0;
-            for(int k = 0; k < SIZE; k++)
+            u_int8_t entropy = 0;
+            for(size_t k = 0; k < SIZE; k++)
             {
                 entropy += g_possible_mat[i][j][k];
             }
@@ -141,31 +143,31 @@ void initPossibleMat()
     memset(g_possible_mat, 1, (sizeof g_possible_mat));
 }
 
-void updatePossibleMat(int val, int row, int col)
+void updatePossibleMat(const u_int8_t val, const u_int8_t row, const u_int8_t col)
 {
     //update cell
-    for(int i = 0; i < SIZE; i++)
+    for(size_t i = 0; i < SIZE; i++)
     {
         g_possible_mat[row][col][i] = 0; 
     }
     //update column
-    for(int i = 0; i < SIZE; i++)
+    for(size_t i = 0; i < SIZE; i++)
     {
         g_possible_mat[i][col][val-1] = 0; 
     }
     //update row
-    for(int i = 0; i < SIZE; i++)
+    for(size_t i = 0; i < SIZE; i++)
     {
         g_possible_mat[row][i][val-1] = 0; 
     }
     //update block
     //find block
-    int block = (col/3) + (row/3)*3;
-    int row_block = (block/3)*3;
-    int col_block = (block%3)*3;
-    for(int i = row_block ; i < row_block + 3; i++)
+    const u_int8_t block = (col/3) + (row/3)*3;
+    const u_int8_t row_block = (block/3)*3;
+    const u_int8_t col_block = (block%3)*3;
+    for(size_t i = row_block ; i < row_block + 3; i++)
     {
-        for(int j = col_block; j < col_block + 3; j++)
+        for(size_t j = col_block; j < col_block + 3; j++)
         {
             g_possible_mat[i][j][val-1] = 0;
         }
@@ -174,11 +176,11 @@ void updatePossibleMat(int val, int row, int col)
 struct cell findBestCell()
 {   
     //bruteforce, find a better way to search for a best cell
-    struct cell best_cell = { .col = 0, .row = 0};
-    int best_val = 10;
-    for(int i = 0 ; i < SIZE; i++)
+    struct cell best_cell = { .col = -1, .row = -1};
+    u_int8_t best_val = 10;
+    for(size_t i = 0 ; i < SIZE; i++)
     {
-        for(int j = 0; j < SIZE; j++)
+        for(size_t j = 0; j < SIZE; j++)
         {
             if(best_val > g_entropy_mat[i][j] && g_entropy_mat[i][j] > 0)
             {

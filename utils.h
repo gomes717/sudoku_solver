@@ -13,12 +13,14 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <stdlib.h>
+#include "sudoku.h"
 struct cell
 {
     size_t row;
     size_t col;
 };
 
-void printer(const char (*sudoku)[SIZE]);
+void printer(const u_int8_t (*sudoku)[SIZE]);
 
 #endif
