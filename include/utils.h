@@ -1,8 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#define SIZE 9
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -14,13 +12,10 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <stdlib.h>
-#include "sudoku.h"
-struct cell
-{
-    size_t row;
-    size_t col;
-};
+#include "defs.h"
+#include "structs.h"
 
 void printer(const u_int8_t (*sudoku)[SIZE]);
+void initSudoku(u_int8_t (*sudoku)[SIZE]);
 
 #endif

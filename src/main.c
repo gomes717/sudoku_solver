@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "../include/utils.h"
 
 const u_int8_t* extractFromFile(const u_int8_t* filepath);
 void charArrToByteMat(const u_int8_t* buffer, u_int8_t (*sudoku)[SIZE]);
