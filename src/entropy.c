@@ -1,46 +1,24 @@
 #include "../include/utils.h"
 
-static void updateEntropyMat()
-{
-    for(size_t i = 0; i < SIZE; i++)
-    {
-        for(size_t j = 0; j < SIZE; j++)
-        {
-            u_int8_t entropy = 0;
-            for(size_t k = 0; k < SIZE; k++)
-            {
-                entropy += g_possible_mat[i][j][k];
-            }
-            g_entropy_mat[i][j] = entropy;
-        }
-    }
-}
-
-static void initPossibleMat()
-{
-    memset(g_possible_mat, 1, (sizeof g_possible_mat));
-    // if(sudoku[row][col] != 0){
-    //             updatePossibleMat(sudoku[row][col], row, col);
-    //             finish_count--;
-    //         }
-}
-
-static void updatePossibleMat(const u_int8_t val, const u_int8_t row, const u_int8_t col)
+void updatePossibleMat(const u_int8_t val, const u_int8_t row, const u_int8_t col)
 {
     //update cell
-    for(size_t i = 0; i < SIZE; i++)
-    {
-        g_possible_mat[row][col][i] = 0; 
-    }
+    g_possible_mat[row][col] = 0; 
     //update column
     for(size_t i = 0; i < SIZE; i++)
     {
-        g_possible_mat[i][col][val-1] = 0; 
+        if(i != row)
+        {
+            g_possible_mat[i][col] &= ~(1<<(val - 1)); 
+        }
     }
     //update row
     for(size_t i = 0; i < SIZE; i++)
     {
-        g_possible_mat[row][i][val-1] = 0; 
+        if(i != col)
+        {
+            g_possible_mat[row][i] &= ~(1<<(val-1)); 
+        }
     }
     //update block
     //find block
@@ -49,9 +27,51 @@ static void updatePossibleMat(const u_int8_t val, const u_int8_t row, const u_in
     const u_int8_t col_block = (block%3)*3;
     for(size_t i = row_block ; i < row_block + 3; i++)
     {
+        if(i == row)
+            continue;
         for(size_t j = col_block; j < col_block + 3; j++)
         {
-            g_possible_mat[i][j][val-1] = 0;
+            if(j == col)
+                continue;
+            g_possible_mat[i][j] &= ~(1<<(val-1));
+        }
+    }
+}
+
+static void initPossibleMat(const u_int8_t (*sudoku)[SIZE])
+{
+    memset(g_possible_mat, 0x01ff, (sizeof g_possible_mat));
+    for(size_t i = 0; i < SIZE; i++)
+    {
+        for(size_t j = 0; j < SIZE; j++)
+        {
+            if(sudoku[i][j] != 0)
+            {
+                updatePossibleMat(sudoku[i][j], i, j);
+            }
+        }
+    }
+}
+
+void initEntropyMat(const u_int8_t (*sudoku)[SIZE])
+{
+    memset(g_entropy_mat, 9, (sizeof g_entropy_mat));
+    initPossibleMat(sudoku);
+    updateEntropyMat();
+}
+
+void updateEntropyMat()
+{
+    for(size_t i = 0; i < SIZE; i++)
+    {
+        for(size_t j = 0; j < SIZE; j++)
+        {
+            u_int8_t entropy = 0;
+            for(size_t k = 0; k < SIZE; k++)
+            {
+                entropy += (g_possible_mat[i][j] >> k) & 1;
+            }
+            g_entropy_mat[i][j] = entropy;
         }
     }
 }

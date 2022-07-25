@@ -18,6 +18,8 @@ static void charArrToByteMat(const char* buffer, u_int8_t (*sudoku)[SIZE])
         if(buffer[i] != ' ')
         {
             sudoku[row][col] = (char)buffer[i] - '0';
+            if(sudoku[row][col] > 0)
+                finish_count--;
             col++;
         }
         i++;
